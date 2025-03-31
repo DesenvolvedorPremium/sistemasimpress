@@ -1,24 +1,3 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyA2rw4tJYgHAAPi1G0HtE9Pp10BJxARr6I",
-  authDomain: "sistemasimpress-cab5f.firebaseapp.com",
-  projectId: "sistemasimpress-cab5f",
-  storageBucket: "sistemasimpress-cab5f.firebasestorage.app",
-  messagingSenderId: "776669425551",
-  appId: "1:776669425551:web:cd181db87f88fd0324e5fa",
-  measurementId: "G-92VX1F6FW7"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 
 // Variáveis para os gráficos
 let buildingChart = null;
