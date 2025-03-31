@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark-mode">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestão de Impressoras</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖨️</text></svg>">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <form id="cadastroForm">
+        <input type="text" id="nome" placeholder="Nome" required>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="senha" placeholder="Senha" required>
+        <button type="submit">Cadastrar</button>
+    </form>
+    
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-print"></i>
+                    <h1>Gestão de Impressoras</h1>
+                </div>
+            </div>
+
+            <nav class="sidebar-menu">
+                <a href="#" class="menu-item active" data-page="dashboard">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="menu-item" data-page="management">
+                    <i class="fas fa-tasks"></i>
+                    <span>Importar</span>
+                </a>
+                <a href="#" class="menu-item" data-page="old-inventory">
+                    <i class="fas fa-archive"></i>
+                    <span>Inventário Atual</span>
+                </a>
+                <a href="#" class="menu-item" data-page="new-inventory">
+                    <i class="fas fa-box-open"></i>
+                    <span>Inventário Novo</span>
+                </a>
+                <a href="#" class="menu-item" data-page="replacements">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Substituições</span>
+                </a>
+                <a href="#" class="menu-item" data-page="reports">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Relatórios</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="current-time">
+                    <i class="fas fa-clock"></i>
+                    <span id="currentDateTime"></span>
+                </div>
+                <div class="version-info">
+                    <p>© 2025 Sistema de Impressoras</p>
+                    <p>Versão 2.0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="page active-page">
+                <div class="page-header">
+                    <h1 class="page-title">
+                        <i class="fas fa-chart-bar"></i>
+                        Dashboard
+                    </h1>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="old-printers-count">0</div>
+                        <div class="metric-label">Impressoras Antigas</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="new-printers-count">0</div>
+                        <div class="metric-label">Impressoras Novas</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="online-printers-count">0</div>
+                        <div class="metric-label">Online</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="offline-printers-count">0</div>
+                        <div class="metric-label">Offline</div>
+                    </div>
+                </div>
+
+                <div class="charts-row">
+                    <div class="card">
+                        <h2 class="card-title">Distribuição por Prédio</h2>
+                        <div class="chart-container">
+                            <canvas id="building-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2 class="card-title">Status das Novas Impressoras</h2>
+                        <div class="chart-container">
+                            <canvas id="status-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2 class="card-title">Distribuição por Modelo</h2>
+                        <div class="chart-container">
+                            <canvas id="model-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Management Page -->
+            <div id="management-page" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">
+                        <i class="fas fa-tasks"></i>
+                        Importar
+                    </h1>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Importar Impressoras</h2>
+                    <div class="form-container">
+                        <div class="upload-area">
+                            <input type="file" id="file-input" accept=".xlsx,.csv,.json">
+                            <label for="file-input" class="upload-btn">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <span>Arraste ou clique para selecionar arquivo</span>
+                                <span class="file-info">Nenhum arquivo selecionado</span>
+                            </label>
+                            <p class="form-help">Formatos suportados: Excel (.xlsx), CSV (.csv), JSON (.json)</p>
+                        </div>
+                        <button id="import-btn" class="btn btn-primary">
+                            <i class="fas fa-upload"></i> Importar Dados
+                        </button>
+                        <div id="import-result" class="result-message"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Cadastrar Nova Impressora</h2>
+                    <div class="form-container">
+                        <form id="printer-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="printer-model" class="form-label">Modelo:</label>
+                                    <input type="text" id="printer-model" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="printer-serial" class="form-label">Número de Série:</label>
+                                    <input type="text" id="printer-serial" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="printer-status" class="form-label">Status:</label>
+                                    <input type="text" id="printer-status" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="printer-orgao" class="form-label">Órgão Responsável:</label>
+                                    <input type="text" id="printer-orgao" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="printer-bloco" class="form-label">Bloco:</label>
+                                    <select id="printer-bloco" class="form-control" required>
+                                        <option value="">Selecione...</option>
+                                        <option value="Bloco J">Bloco J</option>
+                                        <option value="Bloco K">Bloco K</option>
+                                        <option value="Bloco C">Bloco C</option>
+                                        <option value="Bloco F Sede">Bloco F Sede</option>
+                                        <option value="Bloco P Sede">Bloco P Sede</option>
+                                        <option value="Bloco F Anexo">Bloco F Anexo</option>
+                                        <option value="Bloco P Anexo">Bloco P Anexo</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="printer-andar" class="form-label">Andar:</label>
+                                    <input type="text" id="printer-andar" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="printer-sala" class="form-label">Sala:</label>
+                                    <input type="text" id="printer-sala" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="printer-department" class="form-label">Departamento:</label>
+                                    <input type="text" id="printer-department" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="printer-ip" class="form-label">Endereço IP:</label>
+                                <input type="text" id="printer-ip" class="form-control" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Tipo:</label>
+                                <div class="radio-group">
+                                    <label>
+                                        <input type="radio" name="printer-type" value="old" checked> Impressora Antiga
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="printer-type" value="new"> Impressora Nova
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div id="new-printer-fields" style="display: none;">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="printer-online" class="form-label">Status Online:</label>
+                                        <select id="printer-online" class="form-control">
+                                            <option value="true">Online</option>
+                                            <option value="false">Offline</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="printer-trafo" class="form-label">Auto Trafo:</label>
+                                        <select id="printer-trafo" class="form-control">
+                                            <option value="true">Sim</option>
+                                            <option value="false">Não</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="printer-hostname" class="form-label">Hostname:</label>
+                                    <input type="text" id="printer-hostname" class="form-control">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Cadastrar Impressora
+                            </button>
+                        </form>
+                        <div id="register-result" class="result-message"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Old Inventory Page -->
+            <div id="old-inventory-page" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">
+                        <i class="fas fa-archive"></i>
+                        Inventário de Impressoras Antigas
+                    </h1>
+                </div>
+
+                <div class="card">
+                    <div class="filters-container">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="old-filter-serial" class="form-label">Nº Série:</label>
+                                <input type="text" id="old-filter-serial" class="form-control" placeholder="Filtrar por número de série">
+                            </div>
+                            <div class="form-group">
+                                <label for="old-filter-model" class="form-label">Modelo:</label>
+                                <input type="text" id="old-filter-model" class="form-control" placeholder="Filtrar por modelo">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="old-filter-bloco" class="form-label">Bloco:</label>
+                                <select id="old-filter-bloco" class="form-control">
+                                    <option value="">Todos os blocos</option>
+                                    <option value="Bloco J">Bloco J</option>
+                                    <option value="Bloco K">Bloco K</option>
+                                    <option value="Bloco C">Bloco C</option>
+                                    <option value="Bloco F Sede">Bloco F Sede</option>
+                                    <option value="Bloco P Sede">Bloco P Sede</option>
+                                    <option value="Bloco F Anexo">Bloco F Anexo</option>
+                                    <option value="Bloco P Anexo">Bloco P Anexo</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="old-filter-department" class="form-label">Departamento:</label>
+                                <input type="text" id="old-filter-department" class="form-control" placeholder="Filtrar por departamento">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="old-filter-status" class="form-label">Status:</label>
+                                <input type="text" id="old-filter-status" class="form-control" placeholder="Filtrar por status">
+                            </div>
+                            <button id="old-reset-filters" class="btn btn-primary">
+                                <i class="fas fa-redo"></i> Limpar Filtros
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="old-printers-cards" class="printers-cards-grid">
+                        <!-- Cards serão preenchidos pelo JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Inventory Page -->
+            <div id="new-inventory-page" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">
+                        <i class="fas fa-box-open"></i>
+                        Inventário de Impressoras Novas
+                    </h1>
+                </div>
+
+                <div class="card">
+                    <div class="filters-container">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="new-filter-serial" class="form-label">Nº Série:</label>
+                                <input type="text" id="new-filter-serial" class="form-control" placeholder="Filtrar por número de série">
+                            </div>
+                            <div class="form-group">
+                                <label for="new-filter-model" class="form-label">Modelo:</label>
+                                <input type="text" id="new-filter-model" class="form-control" placeholder="Filtrar por modelo">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="new-filter-bloco" class="form-label">Bloco:</label>
+                                <select id="new-filter-bloco" class="form-control">
+                                    <option value="">Todos os blocos</option>
+                                    <option value="Bloco J">Bloco J</option>
+                                    <option value="Bloco K">Bloco K</option>
+                                    <option value="Bloco C">Bloco C</option>
+                                    <option value="Bloco F Sede">Bloco F Sede</option>
+                                    <option value="Bloco P Sede">Bloco P Sede</option>
+                                    <option value="Bloco F Anexo">Bloco F Anexo</option>
+                                    <option value="Bloco P Anexo">Bloco P Anexo</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="new-filter-department" class="form-label">Departamento:</label>
+                                <input type="text" id="new-filter-department" class="form-control" placeholder="Filtrar por departamento">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="new-filter-status" class="form-label">Status:</label>
+                                <select id="new-filter-status" class="form-control">
+                                    <option value="">Todos os status</option>
+                                    <option value="Online">Online</option>
+                                    <option value="Offline">Offline</option>
+                                </select>
+                            </div>
+                            <button id="new-reset-filters" class="btn btn-primary">
+                                <i class="fas fa-redo"></i> Limpar Filtros
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="new-printers-cards" class="printers-cards-grid">
+                        <!-- Cards serão preenchidos pelo JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Replacements Page -->
+            <div id="replacements-page" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">
+                        <i class="fas fa-exchange-alt"></i>
+                        Registrar Substituição
+                    </h1>
+                </div>
+
+                <div class="card">
+                    <div class="form-container">
+                        <form id="replacement-form">
+                            <div class="form-group">
+                                <label for="old-printer-serial" class="form-label">Nº Série da Impressora Antiga:</label>
+                                <input type="text" id="old-printer-serial" list="old-printers-list" class="form-control" required 
+                                       placeholder="Digite ou selecione uma impressora">
+                                <datalist id="old-printers-list">
+                                    <!-- As opções serão preenchidas pelo JavaScript -->
+                                </datalist>
+                                <div id="old-printer-details" class="printer-details" style="display: none;">
+                                    <!-- Os detalhes serão preenchidos pelo JavaScript -->
+                                </div>
+                            </div>
+
+                            <h3 class="section-title">Dados da Nova Impressora</h3>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="new-serial" class="form-label">Nº Série:</label>
+                                    <input type="text" id="new-serial" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="new-model" class="form-label">Modelo:</label>
+                                    <input type="text" id="new-model" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="new-status" class="form-label">Status:</label>
+                                    <input type="text" id="new-status" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="new-orgao" class="form-label">Órgão Responsável:</label>
+                                    <input type="text" id="new-orgao" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="new-bloco" class="form-label">Bloco:</label>
+                                    <select id="new-bloco" class="form-control" required>
+                                        <option value="">Selecione...</option>
+                                        <option value="Bloco J">Bloco J</option>
+                                        <option value="Bloco K">Bloco K</option>
+                                        <option value="Bloco C">Bloco C</option>
+                                        <option value="Bloco F Sede">Bloco F Sede</option>
+                                        <option value="Bloco P Sede">Bloco P Sede</option>
+                                        <option value="Bloco F Anexo">Bloco F Anexo</option>
+                                        <option value="Bloco P Anexo">Bloco P Anexo</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="new-andar" class="form-label">Andar:</label>
+                                    <input type="text" id="new-andar" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="new-sala" class="form-label">Sala:</label>
+                                    <input type="text" id="new-sala" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="new-department" class="form-label">Departamento:</label>
+                                    <input type="text" id="new-department" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="new-ip" class="form-label">Endereço IP:</label>
+                                    <input type="text" id="new-ip" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="new-online" class="form-label">Status Online:</label>
+                                    <select id="new-online" class="form-control" required>
+                                        <option value="true">Online</option>
+                                        <option value="false">Offline</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="new-trafo" class="form-label">Auto Trafo:</label>
+                                    <select id="new-trafo" class="form-control" required>
+                                        <option value="true">Sim</option>
+                                        <option value="false">Não</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="new-hostname" class="form-label">Hostname:</label>
+                                    <input type="text" id="new-hostname" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-exchange-alt"></i> Registrar Substituição
+                            </button>
+                        </form>
+                        <div id="replacement-result" class="result-message"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Histórico de Substituições</h2>
+                    <div class="table-container">
+                        <table id="replacements-table" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th data-sort="date">Data <i class="fas fa-sort"></i></th>
+                                    <th data-sort="oldSerial">Série Antiga <i class="fas fa-sort"></i></th>
+                                    <th data-sort="newSerial">Série Nova <i class="fas fa-sort"></i></th>
+                                    <th data-sort="newModel">Modelo Novo <i class="fas fa-sort"></i></th>
+                                    <th data-sort="newBloco">Bloco <i class="fas fa-sort"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Preenchido pelo JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Page -->
+            <div id="reports-page" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">
+                        <i class="fas fa-chart-pie"></i>
+                        Relatórios
+                    </h1>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Gerar Relatório</h2>
+                    <div class="form-container">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="report-start-date" class="form-label">Data Inicial:</label>
+                                <input type="text" id="report-start-date" class="form-control datepicker" placeholder="Selecione a data">
+                            </div>
+                            <div class="form-group">
+                                <label for="report-end-date" class="form-label">Data Final:</label>
+                                <input type="text" id="report-end-date" class="form-control datepicker" placeholder="Selecione a data">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="report-type" class="form-label">Tipo de Relatório:</label>
+                            <select id="report-type" class="form-control">
+                                <option value="replacements">Substituições</option>
+                                <option value="inventory">Inventário Completo</option>
+                                <option value="status">Status das Impressoras</option>
+                                <option value="location">Distribuição por Localização</option>
+                            </select>
+                        </div>
+                        <button id="generate-report-btn" class="btn btn-primary">
+                            <i class="fas fa-file-pdf"></i> Gerar Relatório PDF
+                        </button>
+                        <button id="generate-excel-btn" class="btn btn-primary">
+                            <i class="fas fa-file-excel"></i> Gerar Relatório Excel
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Pré-visualização</h2>
+                    <div id="report-preview" class="report-preview">
+                        <p>Selecione o período e o tipo de relatório</p>
+                        <div id="report-content" class="report-content">
+                            <!-- Conteúdo do relatório será inserido aqui -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.1.70/build/pdfmake.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.1.70/build/vfs_fonts.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
